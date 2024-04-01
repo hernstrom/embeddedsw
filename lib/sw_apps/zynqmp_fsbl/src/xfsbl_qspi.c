@@ -273,7 +273,7 @@ u32 XFsbl_Qspi24Init(u32 DeviceFlags)
 	/*
 	 * Set the pre-scaler for QSPI clock
 	 */
-	Status = XQspiPsu_SetClkPrescaler(&QspiPsuInstance, XQSPIPSU_CLK_PRESCALE_8);
+	Status = XQspiPsu_SetClkPrescaler(&QspiPsuInstance, XQSPIPSU_CLK_PRESCALE_2);
 
 	if (Status != XFSBL_SUCCESS) {
 		UStatus = XFSBL_ERROR_QSPI_PRESCALER_CLK;
@@ -980,7 +980,7 @@ u32 XFsbl_Qspi32Init(u32 DeviceFlags)
 	/*
 	 * Set the pre-scaler for QSPI clock
 	 */
-	Status = XQspiPsu_SetClkPrescaler(&QspiPsuInstance, XQSPIPSU_CLK_PRESCALE_8);
+	Status = XQspiPsu_SetClkPrescaler(&QspiPsuInstance, XQSPIPSU_CLK_PRESCALE_2);
 
 	if (Status != XFSBL_SUCCESS) {
 		UStatus = XFSBL_ERROR_QSPI_PRESCALER_CLK;
