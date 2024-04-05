@@ -280,6 +280,8 @@ u32 XFsbl_Initialize(XFsblPs * FsblInstancePtr)
 		{0U};
 #endif
 
+    XFsbl_Out32(CRL_APB_RESET_CTRL, 1);
+    
 	/**
 	 * Place AES and SHA engines in reset
 	 */
