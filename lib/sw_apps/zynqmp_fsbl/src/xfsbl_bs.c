@@ -61,6 +61,8 @@ u8 ReadBuffer[READ_BUFFER_SIZE]__attribute__ ((aligned (64)))
  *
  *****************************************************************************/
 u32 XFsbl_PcapInit(void) {
+	static u8 isStage1 = 1;
+
 	u32 RegVal;
 	u32 Status;
 	u32 PlatInfo;
@@ -100,12 +102,17 @@ u32 XFsbl_PcapInit(void) {
 		}
 	}
 
+
 	/* Reset PL */
-	XFsbl_Out32(CSU_PCAP_PROG, 0x0U);
+	if (isStage1) { // do not erase the PL when loading stage 2
+		XFsbl_Out32(CSU_PCAP_PROG, 0x0U);
 
-	(void)usleep(PL_RESET_PERIOD_IN_US);
+		(void)usleep(PL_RESET_PERIOD_IN_US);
 
-	XFsbl_Out32(CSU_PCAP_PROG, CSU_PCAP_PROG_PCFG_PROG_B_MASK);
+		XFsbl_Out32(CSU_PCAP_PROG, CSU_PCAP_PROG_PCFG_PROG_B_MASK);
+
+		isStage1 = 0;
+    }
 
 	/*
 	 *  Wait for PL_init completion
