@@ -100,6 +100,15 @@ typedef struct {
 #endif
 } XFsblPs;
 
+typedef enum {
+    PARTITION_FSBL = 0,
+    PARTITION_BITFILE_STAGE1,
+    PARTITION_BITFILE_STAGE2,
+    PARTITION_PMU,
+    PARTITION_ATF,
+    PARTITION_DEVICETREE,
+    PARTITION_SSBL,
+} partition_id_t;
 
 /***************** Macros (Inline Functions) Definitions *********************/
 

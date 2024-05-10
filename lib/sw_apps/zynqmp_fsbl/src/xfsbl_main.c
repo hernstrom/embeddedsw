@@ -35,6 +35,7 @@
 #include "xfsbl_hw.h"
 #include "xfsbl_main.h"
 #include "bspconfig.h"
+#include "config_lmk.h"
 
 /************************** Constant Definitions *****************************/
 
@@ -206,6 +207,21 @@ int main(void )
 				} else {
 					XFsbl_Printf(DEBUG_INFO,"Partition %d Load Success \n\r",
 									PartitionNum);
+
+					/*
+					 * Configure the LMK after the first stage of the PL is programmed,
+					 * and before the second stage is programmed.
+					 */
+					if (PartitionNum == PARTITION_BITFILE_STAGE1)
+					{
+						FsblStatus = Configure_LMK();
+						if (FsblStatus != XFSBL_SUCCESS) {
+							XFsbl_Printf(DEBUG_GENERAL, "LMK Configuration Failed\n\r");
+							FsblStatus += XFSBL_ERROR_STAGE_3;
+							FsblStage = XFSBL_STAGE_ERR;
+							break;
+						}
+					}
 
 					XFsbl_MarkUsedRPUCores(&FsblInstance,
 							       PartitionNum);

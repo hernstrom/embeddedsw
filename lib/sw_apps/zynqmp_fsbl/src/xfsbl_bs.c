@@ -60,9 +60,7 @@ u8 ReadBuffer[READ_BUFFER_SIZE]__attribute__ ((aligned (64)))
  * @return	error status based on implemented functionality (SUCCESS by default)
  *
  *****************************************************************************/
-u32 XFsbl_PcapInit(void) {
-	static u8 isStage1 = 1;
-
+u32 XFsbl_PcapInit(u32 PartitionNum) {
 	u32 RegVal;
 	u32 Status;
 	u32 PlatInfo;
@@ -104,14 +102,12 @@ u32 XFsbl_PcapInit(void) {
 
 
 	/* Reset PL */
-	if (isStage1) { // do not erase the PL when loading stage 2
+	if (PartitionNum == PARTITION_BITFILE_STAGE1) { // do not erase the PL when loading stage 2
 		XFsbl_Out32(CSU_PCAP_PROG, 0x0U);
 
 		(void)usleep(PL_RESET_PERIOD_IN_US);
 
 		XFsbl_Out32(CSU_PCAP_PROG, CSU_PCAP_PROG_PCFG_PROG_B_MASK);
-
-		isStage1 = 0;
     }
 
 	/*
