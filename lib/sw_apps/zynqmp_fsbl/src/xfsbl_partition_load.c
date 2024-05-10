@@ -1318,7 +1318,7 @@ static u32 XFsbl_PartitionValidation(XFsblPs * FsblInstancePtr,
 		 * FSBL initialization
 		 */
 #ifndef XFSBL_PL_CLEAR
-		Status = XFsbl_PcapInit();
+		Status = XFsbl_PcapInit(PartitionNum);
 		if (Status != XFSBL_SUCCESS) {
 			goto END;
 		}
