@@ -99,6 +99,7 @@ static u32 XFsbl_DdrEccInit(void);
 static u32 XFsbl_EccInit(u64 DestAddr, u64 LengthBytes);
 static u32 XFsbl_TcmInit(XFsblPs * FsblInstancePtr);
 static void XFsbl_EnableProgToPL(void);
+static void XFsbl_DisableProgToPL(void);
 static void XFsbl_ClearPendingInterrupts(void);
 #ifdef XFSBL_TPM
 static u32 XFsbl_MeasureFsbl(u8* PartitionHash);
@@ -281,7 +282,7 @@ u32 XFsbl_Initialize(XFsblPs * FsblInstancePtr)
 #endif
 
     XFsbl_Out32(CRL_APB_RESET_CTRL, 1);
-    
+
 	/**
 	 * Place AES and SHA engines in reset
 	 */
@@ -303,6 +304,13 @@ u32 XFsbl_Initialize(XFsblPs * FsblInstancePtr)
 	{
 		XFsbl_EnableProgToPL();
 	}
+
+	/*
+	 * Talladega-specific override
+	 * Always disable propogation of the PROG signal to PL
+	 * Required to meet PCIe timing requirements during warm resets
+	 */
+	//XFsbl_DisableProgToPL();
 
 	/**
 	 * Configure the system as in PSU
@@ -504,6 +512,35 @@ void XFsbl_EnableProgToPL(void)
 
 	RegVal &= ~(PMU_GLOBAL_PS_CNTRL_PROG_GATE_MASK);
 	RegVal |= (PMU_GLOBAL_PS_CNTRL_PROG_ENABLE_MASK);
+
+	Xil_Out32 (PMU_GLOBAL_PS_CNTRL, RegVal);
+}
+
+/*****************************************************************************/
+/**
+ * This function disables the propagation of the PROG signal to PL
+ *
+ * @param	None
+ *
+ * @return	None
+ *
+ ******************************************************************************/
+void XFsbl_DisableProgToPL(void)
+{
+	u32 RegVal = 0x0U;
+
+	/*
+	 * PROG control to PL.
+	 */
+	Xil_Out32(CSU_PCAP_PROG, CSU_PCAP_PROG_PCFG_PROG_B_MASK);
+
+	/*
+	 * Enable the propagation of the PROG signal to the PL after PS-only reset
+	 * */
+	RegVal = XFsbl_In32(PMU_GLOBAL_PS_CNTRL);
+
+	RegVal &= ~(PMU_GLOBAL_PS_CNTRL_PROG_ENABLE_MASK);
+	RegVal |= (PMU_GLOBAL_PS_CNTRL_PROG_GATE_MASK);
 
 	Xil_Out32 (PMU_GLOBAL_PS_CNTRL, RegVal);
 }

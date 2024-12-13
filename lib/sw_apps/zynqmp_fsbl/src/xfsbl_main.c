@@ -223,6 +223,15 @@ int main(void )
 						}
 					}
 
+					if (PartitionNum == PARTITION_SSBL)
+					{
+						u32 RegVal = 0x0U;
+						RegVal = XFsbl_In32(PMU_GLOBAL_PS_CNTRL);
+						RegVal &= ~(PMU_GLOBAL_PS_CNTRL_PROG_ENABLE_MASK);
+						RegVal |= (PMU_GLOBAL_PS_CNTRL_PROG_GATE_MASK);
+						Xil_Out32 (PMU_GLOBAL_PS_CNTRL, RegVal);
+					}
+
 					XFsbl_MarkUsedRPUCores(&FsblInstance,
 							       PartitionNum);
 					/**
