@@ -140,7 +140,7 @@ extern "C" {
  *       header is not authenticated" is excluded
  */
 #ifndef FSBL_NAND_EXCLUDE_VAL
-#define FSBL_NAND_EXCLUDE_VAL			(0U)
+#define FSBL_NAND_EXCLUDE_VAL			(1U)
 #endif
 
 #ifndef FSBL_QSPI_EXCLUDE_VAL
@@ -152,7 +152,7 @@ extern "C" {
 #endif
 
 #ifndef FSBL_SECURE_EXCLUDE_VAL
-#define FSBL_SECURE_EXCLUDE_VAL			(0U)
+#define FSBL_SECURE_EXCLUDE_VAL			(1U)
 #endif
 
 #ifndef FSBL_BS_EXCLUDE_VAL
@@ -164,7 +164,7 @@ extern "C" {
 #endif
 
 #ifndef FSBL_WDT_EXCLUDE_VAL
-#define FSBL_WDT_EXCLUDE_VAL			(0U)
+#define FSBL_WDT_EXCLUDE_VAL			(1U)
 #endif
 
 #ifndef FSBL_PERF_EXCLUDE_VAL
@@ -192,7 +192,7 @@ extern "C" {
 #endif
 
 #ifndef FSBL_FORCE_ENC_EXCLUDE_VAL
-#define FSBL_FORCE_ENC_EXCLUDE_VAL		(0U)
+#define FSBL_FORCE_ENC_EXCLUDE_VAL		(1U)
 #endif
 
 #ifndef FSBL_DDR_SR_EXCLUDE_VAL
