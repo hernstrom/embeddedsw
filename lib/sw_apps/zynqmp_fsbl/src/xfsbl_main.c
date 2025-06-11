@@ -104,14 +104,40 @@ int main(void )
 					FsblStatus += XFSBL_ERROR_STAGE_1;
 					FsblStage = XFSBL_STAGE_ERR;
 				} else {
+					u32 MultiBootOffset = XFsbl_In32(CSU_CSU_MULTI_BOOT);
+					if (MultiBootOffset == 0x0U)
+					{
+						XFsbl_Printf(DEBUG_INFO, "Operate as ZSBL at MultiBootOffset 0x0\n\r");
+#if defined (FSBL_DEBUG_INFO)
+						/**
+						 * When building with FSBL_DEBUG_INFO, provide some delay for XFsbl_Printf
+						 * to print before the soft reset (after setting the csu_multi_boot register).
+						 */
+						(void)usleep(10000U);
+#endif
+						/**
+						 * Temporary hardcode csu_multi_boot register to fallback at QSPI offset 2MB.
+						 * This will be updated with A/B partition selection logic later.
+						 * The function also issues a soft reset and poll until the reset commences.
+						 * 2MB/32KB boot image search boundary = 0x40.
+						 */
+						MultiBootOffset = 0x40;
+						XFsbl_UpdateMultiBoot(MultiBootOffset);
+					}
+					else
+					{
+						/**
+						 * Proceed with normal FSBL functionality
+						 */
+						XFsbl_Printf(DEBUG_INFO, "Operate as FSBL at MultiBootOffset 0x%08lx\n\r", MultiBootOffset);
 
-					/**
-					 *
-					 * Include the code for FSBL time measurements
-					 * Initialize the global timer and get the value
-					 */
-
-					FsblStage = XFSBL_STAGE2;
+						/**
+						 *
+						 * Include the code for FSBL time measurements
+						 * Initialize the global timer and get the value
+						 */
+						FsblStage = XFSBL_STAGE2;
+					}
 				}
 			}break;
 
