@@ -194,7 +194,8 @@ typedef enum {
 /**
  * Functions defined in xfsbl_main.c
  */
-void XFsbl_PrintFsblBanner(void );
+void XFsbl_PrintFsblBanner(void);
+int isZSBL();
 void XFsbl_ErrorLockDown(u32 ErrorStatus);
 
 #if defined(XFSBL_PERF)

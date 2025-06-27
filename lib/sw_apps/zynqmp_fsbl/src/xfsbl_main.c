@@ -135,6 +135,67 @@ int main(void )
 				 */
 
 				FsblStatus = XFsbl_BootDeviceInitAndValidate(&FsblInstance);
+
+				if (isZSBL()) {
+					XFsbl_Printf(DEBUG_GENERAL, "Zynq MP Zero Stage Boot Loader \n\r");
+					/**
+					 * Read and compare the Boot Priority partitions to determine which Bootstrap partition to boot from.
+					 * Boot Priority partitions A and B exist at QSPI offsets 1536K and 1792K, respectively.
+					 */
+					uint16_t BootPriorityA, BootPriorityB;
+					FsblInstance.DeviceOps.DeviceCopy(1536 * 1024, &BootPriorityA, sizeof(BootPriorityA));
+					FsblInstance.DeviceOps.DeviceCopy(1792 * 1024, &BootPriorityB, sizeof(BootPriorityB));
+
+					XFsbl_Printf(DEBUG_INFO,"Boot Priority A Partition Value: %x \n\r", BootPriorityA);
+					XFsbl_Printf(DEBUG_INFO,"Boot Priority B Partition Value: %x \n\r", BootPriorityB);
+
+					static const uint16_t ROCK = 0x40C6;
+					static const uint16_t PAPER = 0xBAB4;
+					static const uint16_t SCISSORS = 0x5C54;
+					uint32_t MultiBootValue = 0x0;
+					/**
+					 *  Check if BootPriorityA wins or BootPriorityB is invalid,
+					 *  in which case Bootstrap Partition A will be selected for boot.
+					 */
+					 if (((BootPriorityA == ROCK) && (BootPriorityB != PAPER)) ||
+						((BootPriorityA == PAPER) && (BootPriorityB != SCISSORS)) ||
+						((BootPriorityA == SCISSORS) && (BootPriorityB != ROCK)) ||
+						((BootPriorityB != ROCK) && (BootPriorityB != PAPER) && (BootPriorityB != SCISSORS)))
+					{
+						/**
+						 *  BootStrap A partition is selected when it has the highest priority, but also
+						 *  in situations that should not occur but are handled gracefully:
+						 *  - BootPriorityA and BootPriorityB values are indentical
+						 * 	- BootPriorityA and BootPriorityB values are both invalid
+						 *  In those situations, BootStrap A partition is selected because it is the first possible partition
+						 *  to boot from in QSPI. If no valid image exists in the BootStrap A partition, the system will
+						 *  automatically continue scanning QSPI for a valid image to maximize the chances of a successful boot.
+						 */
+						XFsbl_Printf(DEBUG_INFO,"Boot from BootStrap A slot \n\r");						
+						/**
+						 *  Boot from BootStrap A partition at QSPI offset 2MB, corresponding to MultiBoot register value 0x40.
+						 *  2MB = 0x40 * 32KB QSPI segments
+						 */
+						MultiBootValue = 0x40;
+					} else {
+						/**
+						 *  Boot from BootStrap B partition at QSPI offset 33MB, corresponding to MultiBoot register value 0x420.
+						 *  33MB = 0x420 * 32KB QSPI segments
+						 */
+						XFsbl_Printf(DEBUG_INFO,"Boot from BootStrap B slot \n\r");						
+						MultiBootValue = 0x420;
+					}
+					XFsbl_Printf(DEBUG_GENERAL, "Setting MultiBoot register to: 0x%0x\r\n", MultiBootValue);
+
+#if defined (FSBL_DEBUG_INFO)
+					/**
+					 * Delay for printing before the soft reset (after setting the csu_multi_boot register).
+					 */
+					(void)usleep(10000U);
+#endif
+					XFsbl_UpdateMultiBoot(MultiBootValue);
+				}
+
 				if ( (XFSBL_SUCCESS != FsblStatus) &&
 						(XFSBL_STATUS_JTAG != FsblStatus) )
 				{
@@ -351,6 +412,11 @@ int main(void )
 	return 0;
 }
 
+int isZSBL()
+{
+    return XFsbl_In32(CSU_CSU_MULTI_BOOT) == 0x0U;
+}
+
 void XFsbl_PrintFsblBanner(void )
 {
 	s32 PlatInfo;
@@ -359,11 +425,14 @@ void XFsbl_PrintFsblBanner(void )
 	 */
 #if !defined(XFSBL_PERF) || defined(FSBL_DEBUG) || defined(FSBL_DEBUG_INFO) \
 			|| defined(FSBL_DEBUG_DETAILED)
-	XFsbl_Printf(DEBUG_PRINT_ALWAYS,
-                 "Zynq MP First Stage Boot Loader \n\r");
-	XFsbl_Printf(DEBUG_PRINT_ALWAYS,
-                 "Release %d.%d   %s  -  %s\r\n",
-                 SDK_RELEASE_YEAR, SDK_RELEASE_QUARTER,__DATE__,__TIME__);
+	if (!isZSBL()) {
+		// FSBL: Print Banner message.
+		XFsbl_Printf(DEBUG_PRINT_ALWAYS,
+	                 "Zynq MP First Stage Boot Loader \n\r");
+		XFsbl_Printf(DEBUG_PRINT_ALWAYS,
+	                 "Release %d.%d   %s  -  %s\r\n",
+	                 SDK_RELEASE_YEAR, SDK_RELEASE_QUARTER,__DATE__,__TIME__);
+	}
 
 	XFsbl_Printf(DEBUG_GENERAL, "MultiBootOffset: 0x%0x\r\n",
 		XFsbl_In32(CSU_CSU_MULTI_BOOT));

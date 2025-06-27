@@ -280,7 +280,18 @@ u32 XFsbl_Initialize(XFsblPs * FsblInstancePtr)
 		{0U};
 #endif
 
-    XFsbl_Out32(CRL_APB_RESET_CTRL, 1);
+	/**
+	 *  Disable soft resets in FSBL to optimize the boot time to help
+	 *  meet PCIe timing requirements for Talladega.
+	 *
+	 *  This is done only for FSBL and not for ZSBL - ZSBL depends on soft
+	 *  resets as part of the mechanism for updating the multiboot register.
+	 * 
+	 *  Note: Soft resets are re-enabled later in module boot (during U-Boot load)
+	 */
+	if(!isZSBL()) {
+		XFsbl_Out32(CRL_APB_RESET_CTRL, 1);
+	}
     
 	/**
 	 * Place AES and SHA engines in reset
@@ -450,6 +461,11 @@ u32 XFsbl_BootDeviceInitAndValidate(XFsblPs * FsblInstancePtr)
 	Status = XFsbl_PrimaryBootDeviceInit(FsblInstancePtr);
 	if (XFSBL_SUCCESS != Status) {
 		goto END;
+	}
+
+	if(XFsbl_In32(CSU_CSU_MULTI_BOOT) == 0U) {
+		// ZSBL: Return now to avoid doing extra work for initialization.
+		return Status;
 	}
 
 	/**
